@@ -1,0 +1,189 @@
+run:
+  deadline: 3m
+  tests: true
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+
+  # list of build tags, all linters use it. Default is empty list.
+  build-tags:
+    - contract
+
+linters-settings:
+  dogsled:
+    # checks assignments with too many blank identifiers; default is 2
+    max-blank-identifiers: 2
+  errcheck:
+    # report about not checking of errors in type assertions: `a := b.(MyStruct)`;
+    # default is false: such cases aren't reported by default.
+    check-type-assertions: true
+    # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
+    # default is false: such cases aren't reported by default.
+    check-blank: true
+
+    # path to a file containing a list of functions to exclude from checking
+    # see https://github.com/kisielk/errcheck#excluding-functions for details
+    # exclude: /path/to/file.txt
+  exhaustive:
+    # indicates that switch statements are to be considered exhaustive if a
+    # 'default' case is present, even if all enum members aren't listed in the
+    # switch
+    default-signifies-exhaustive: true
+  funlen:
+    lines: 100
+    statements: 60
+  gocognit:
+    # minimal code complexity to report, 30 by default (but we recommend 10-20)
+    min-complexity: 20
+  nestif:
+    # minimal complexity of if statements to report, 5 by default
+    min-complexity: 4
+  goconst:
+    # minimal length of string constant, 3 by default
+    min-len: 3
+    # minimal occurrences count to trigger, 3 by default
+    min-occurrences: 2
+  gocritic:
+    # Enable multiple checks by tags, run `GL_DEBUG=gocritic golangci-lint run` to see all tags and checks.
+    # Empty list by default. See https://github.com/go-critic/go-critic#usage -> section "Tags".
+    enabled-tags:
+      - performance
+      - style
+      - diagnostic
+    disabled-tags:
+      - experimental
+
+    # Which checks should be enabled; can't be combined with 'disabled-checks';
+    # See https://go-critic.github.io/overview#checks-overview
+    # To check which checks are enabled run `GL_DEBUG=gocritic golangci-lint run`
+    # By default list of stable checks is used.
+    enabled-checks:
+    disabled-checks:
+      - paramTypeCombine
+  gocyclo:
+    min-complexity: 20
+  godox:
+    # report any comments starting with keywords, this is useful for TODO or FIXME comments that
+    # might be left in the code accidentally and should be resolved before merging
+    keywords: # default keywords are TODO, BUG, and FIXME, these can be overwritten by this setting
+      # - TODO      # uncomment when we remove all TODOs
+      - BUG
+      - FIXME
+      - OPTIMIZE # marks code that should be optimized before merging
+      - HACK # marks hack-arounds that should be removed before merging
+  goimports:
+    local-prefixes: github.com/reemote/lambda-example
+  gomnd:
+    settings:
+      mnd:
+        # the list of enabled checks, see https://github.com/tommy-muehle/go-mnd/#checks for description.
+        checks: argument,case,condition,operation,return,assign
+  govet:
+    # report about shadowed variables
+    check-shadowing: true
+    enable-all: true
+    disable:
+      - fieldalignment
+    tab-width: 1
+  misspell:
+    locale: US
+  unused:
+    # treat code as a program (not a library) and report unused exported identifiers; default is false.
+    # XXX: if you enable this setting, unused will report a lot of false-positives in text editors:
+    # if it's called for subdir of a project it can't find funcs usages. All text editor integrations
+    # with golangci-lint call it on a directory with the changed file.
+    #
+    # One time it started show false positive errors :(
+    check-exported: true
+
+  wsl:
+    # If true append is only allowed to be cuddled if appending value is
+    # matching variables, fields or types on line above. Default is true.
+    strict-append: true
+    # Allow calls and assignments to be cuddled as long as the lines have any
+    # matching variables, fields or types. Default is true.
+    allow-assign-and-call: true
+    # Allow multiline assignments to be cuddled. Default is true.
+    allow-multiline-assign: true
+    # Allow declarations (var) to be cuddled.
+    allow-cuddle-declarations: true
+    # Allow trailing comments in ending of blocks
+    allow-trailing-comment: false
+    # Force newlines in end of case at this limit (0 = never).
+    force-case-trailing-whitespace: 0
+    # Force cuddling of err checks with err var assignment
+    force-err-cuddling: false
+    # Allow leading comments to be separated with empty liens
+    allow-separated-leading-comment: false
+
+linters:
+  # please, do not use `enable-all`: it's deprecated and will be removed soon.
+  # inverted configuration with `enable-all` and `disable` is not scalable during updates of golangci-lint
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - errcheck
+    - exhaustive
+    - funlen
+    - gochecknoinits
+    - goconst
+    - gocritic
+    - gocyclo
+    - goimports
+    - gomnd
+    - goprintffuncname
+    - gosimple
+    - govet
+    - misspell
+    - noctx
+    - nolintlint
+    - exportloopref
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unused
+    - varcheck
+    - govet
+    - gocognit
+    - godox
+    - wsl
+    - gofumpt
+    - megacheck
+    - asciicheck
+    - dupl
+    - lll
+
+  # don't enable:
+  # - godot                   not necessary linter
+  # - goerr113                as for me, some errors shouldn't be static
+  # - nestif                  we use gocognit for simplifier function
+  # - testpackage             we check all files include tests
+  # - prealloc                XXX: we don't recommend using this linter before doing performance profiling.
+  # - nakedret                we use funlen and gocyclo for simplifier function
+  # - rowserrcheck            not clear about packages
+  # - unparam                 XXX: if you enable this setting, unparam will report a lot of false-positives in text editors:
+  # - whitespace              conflicts with wsl
+  # - gofmt                   we use gofumpt
+  # - gochecknoglobals        there are not reason
+  # - gosec                   doesn't necessary
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - unused # https://github.com/golangci/golangci-lint/issues/791
+        - gocritic # disabled because a lot of huge bytes copy
+        - goconst # we use const for check assertions
+        - scopelint # incorrect behaver for tables tests
+        - funlen # highlighted tests with a lot test cases
+        - gomnd # we use constant check or magic numbers
+
+service:
+  golangci-lint-version: 1.41.x
