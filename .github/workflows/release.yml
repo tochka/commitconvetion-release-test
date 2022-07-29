@@ -15,6 +15,7 @@ jobs:
         with:
           github-token: ${{ secrets.github_token }}
           skip-commit: true
+          skip-on-empty: false
           preset: conventionalcommits
       - name: Create Release
         uses: actions/create-release@v1
