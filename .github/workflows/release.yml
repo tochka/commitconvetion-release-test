@@ -26,43 +26,27 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.github_token }}
         with:
           tag_name: ${{ steps.changelog.outputs.tag }}
-          release_name: ${{ steps.changelog.outputs.tag }}
+          release_name: Version ${{ steps.changelog.outputs.tag }}
           body: ${{ steps.changelog.outputs.clean_changelog }}
-# jobs:
-#   create-release:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - uses: actions/checkout@v2
-#       - uses: scottbrenner/generate-changelog-action@master
-#         id: Changelog
-#       - uses: ietf-tools/semver-action@v1
-#         id: semver
-#         with:
-#           token: ${{ github.token }}
-#       - uses: ncipollo/release-action@v1
-#         id: create_release
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-#         with:
-#           tag_name: ${{ github.ref }}
-#           release_name: Release ${{ github.ref }}
-#           body: |
-#             ${{ steps.Changelog.outputs.changelog }}
-#           draft: false
-#           prerelease: false
-#   upload-assets:
-#     runs-on: ubuntu-latest
-#     strategy:
-#       matrix:
-#         goos: [linux, darwin]
-#         goarch: [amd64, arm64]
-#     steps:
-#       - uses: actions/checkout@v3
-#       - uses: wangyoucao577/go-release-action@v1.30
-#         with:
-#           github_token: ${{ secrets.GITHUB_TOKEN }}
-#           goos: ${{ matrix.goos }}
-#           goarch: ${{ matrix.goarch }}
-#           goversion: "https://dl.google.com/go/go1.18.1.linux-amd64.tar.gz"
-#           build_command: "make build"
-#           release_tag:
+    outputs:
+      tag: ${{ steps.changelog.outputs.tag }}
+
+  upload-assets:
+    needs: create-release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo ${GITHUB_SHA::7} >> $GITHUB_ENV
+      - uses: wangyoucao577/go-release-action@v1.30
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          goversion: "https://dl.google.com/go/go1.18.1.linux-amd64.tar.gz"
+          # project_path: "."
+          ldflags: "-X main.Version=${{ needs.create-release.outputs.tag }} -X main.Build=$(GITHUB_SHA)"
+          release_tag: ${{ needs.create-release.outputs.tag }}
