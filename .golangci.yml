@@ -59,7 +59,6 @@ linters-settings:
     # See https://go-critic.github.io/overview#checks-overview
     # To check which checks are enabled run `GL_DEBUG=gocritic golangci-lint run`
     # By default list of stable checks is used.
-    enabled-checks:
     disabled-checks:
       - paramTypeCombine
   gocyclo:
@@ -79,7 +78,13 @@ linters-settings:
     settings:
       mnd:
         # the list of enabled checks, see https://github.com/tommy-muehle/go-mnd/#checks for description.
-        checks: argument,case,condition,operation,return,assign
+        checks:
+          - argument
+          - case
+          - condition
+          - operation
+          - return
+          - assign
   govet:
     # report about shadowed variables
     check-shadowing: true
