@@ -1,22 +1,67 @@
+name: Release
+
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main
 
 jobs:
-  releases-matrix:
-    name: Release Go Binary
+  create-release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        goos: [linux, darwin]
-        goarch: [amd64, arm64]
     steps:
-      - uses: actions/checkout@v3
-      - uses: wangyoucao577/go-release-action@v1.30
+      - uses: TriPSs/conventional-changelog-action@v3
+        id: semver
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          goversion: "https://dl.google.com/go/go1.18.1.linux-amd64.tar.gz"
-          project_path: "."
-          binary_name: "test"
+          github-token: ${{ secrets.github_token }}
+          # git-push: false
+          # create-summary: true
+          # output-file: false
+          skip-commit: true
+          # skip-version-file: true
+      - name: Create Release
+        uses: actions/create-release@v1
+        if: ${{ steps.changelog.outputs.skipped == 'false' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}
+        with:
+          tag_name: ${{ steps.changelog.outputs.tag }}
+          release_name: ${{ steps.changelog.outputs.tag }}
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+# jobs:
+#   create-release:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
+#       - uses: scottbrenner/generate-changelog-action@master
+#         id: Changelog
+#       - uses: ietf-tools/semver-action@v1
+#         id: semver
+#         with:
+#           token: ${{ github.token }}
+#       - uses: ncipollo/release-action@v1
+#         id: create_release
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+#         with:
+#           tag_name: ${{ github.ref }}
+#           release_name: Release ${{ github.ref }}
+#           body: |
+#             ${{ steps.Changelog.outputs.changelog }}
+#           draft: false
+#           prerelease: false
+#   upload-assets:
+#     runs-on: ubuntu-latest
+#     strategy:
+#       matrix:
+#         goos: [linux, darwin]
+#         goarch: [amd64, arm64]
+#     steps:
+#       - uses: actions/checkout@v3
+#       - uses: wangyoucao577/go-release-action@v1.30
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           goos: ${{ matrix.goos }}
+#           goarch: ${{ matrix.goarch }}
+#           goversion: "https://dl.google.com/go/go1.18.1.linux-amd64.tar.gz"
+#           build_command: "make build"
+#           release_tag:
